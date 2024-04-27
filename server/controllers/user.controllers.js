@@ -47,7 +47,7 @@ const signupUser = asyncHandler(async (req, res, next) => {
       .status(200)
       .json(new ApiResponse(201, createdUser, "User created successfully."));
   } catch (error) {
-    next();
+    next;
   }
 });
 
@@ -97,7 +97,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
       );
   } catch(error){
     console.log(`Error occured while logging in. Error: ${error.message}`);
-    next();
+    next;
   }
 });
 
@@ -130,7 +130,7 @@ const logoutUser = asyncHandler(async (req, res, next) => {
     console.log(
       `Error occured while logging out the user. Error: ${error.message}`,
     );
-    next();
+    next;
   }
 });
 
