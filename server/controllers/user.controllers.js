@@ -81,7 +81,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
       sameSite: "none",
     };
   
-    return new res.status(200)
+    return res.status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
       .json(
