@@ -53,6 +53,7 @@ const signupUser = asyncHandler(async (req, res, next) => {
 
 const loginUser = asyncHandler(async (req, res, next) => {
   try{
+    console.log("the process started.")
     const { email, password } = req.body;
   
     if (!email || !password) {
