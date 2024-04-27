@@ -1,4 +1,4 @@
 const DB_NAME = "vivek";
-const LIMIT = "16kb";
+const limit = "16kb";
 
-export { DB_NAME, LIMIT };
+export { DB_NAME, limit };
