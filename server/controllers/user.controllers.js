@@ -7,7 +7,7 @@ import { generateTokens } from "./utils/generateTokens.js";
 const signupUser = asyncHandler(async (req, res, next) => {
   try {
     console.log("Signup process started.");
-    console.log(req.body);
+    console.log(req);
     const { username, email, password } = req.body;
 
     console.log("Received data:", username, email, password);
