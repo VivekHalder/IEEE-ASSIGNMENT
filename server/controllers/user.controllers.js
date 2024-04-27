@@ -6,8 +6,10 @@ import { generateTokens } from "./utils/generateTokens.js";
 
 const signupUser = asyncHandler(async (req, res, next) => {
   try {
-    console.log("The process started.")
+    console.log("Signup process started.");
     const { username, email, password } = req.body;
+
+    console.log("Received data:", username, email, password);
 
     if ([username, email, password].some((ele) => ele !== "")) {
       throw new ApiError(400, "No fields should be empty.");
@@ -44,46 +46,50 @@ const signupUser = asyncHandler(async (req, res, next) => {
       "-password -refreshToken",
     );
 
+    console.log("User created successfully:", createdUser);
+
     return res
       .status(200)
       .json(new ApiResponse(201, createdUser, "User created successfully."));
   } catch (error) {
-    next;
+    console.error("Error during signup:", error.message);
+    next(error);
   }
 });
 
 const loginUser = asyncHandler(async (req, res, next) => {
-  try{
-    console.log("the process started.")
+  try {
+    console.log("Login process started.");
     const { email, password } = req.body;
-  
+
+    console.log("Received login data:", email, password);
+
     if (!email || !password) {
       throw new ApiError(400, "Email and password are required for login.");
     }
-  
+
     const user = await User.findOne({ email });
-  
+
     if (!user || !(await user.comparePassword(password))) {
       throw new ApiError(401, "Invalid email or password.");
     }
-  
+
     const { accessToken, refreshToken } = await generateTokens(user);
-  
+
     const loggedInUser = await User.findById(user._id).select(
       "-password -refreshToken",
     );
-  
-    if (!loggedInUser) {
-      throw new ApiError(401, "Invalid email or password.");
-    }
-  
+
+    console.log("User logged in successfully:", loggedInUser);
+
     const options = {
       httpOnly: true,
       secure: true,
       sameSite: "none",
     };
-  
-    return res.status(200)
+
+    return res
+      .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
       .json(
@@ -97,14 +103,16 @@ const loginUser = asyncHandler(async (req, res, next) => {
           "User logged in successfully.",
         ),
       );
-  } catch(error){
-    console.log(`Error occured while logging in. Error: ${error.message}`);
-    next;
+  } catch (error) {
+    console.error("Error during login:", error.message);
+    next(error);
   }
 });
 
 const logoutUser = asyncHandler(async (req, res, next) => {
   try {
+    console.log("Logout process started.");
+
     await User.findByIdAndUpdate(
       req.user._id,
       {
@@ -116,6 +124,8 @@ const logoutUser = asyncHandler(async (req, res, next) => {
         new: true,
       },
     );
+
+    console.log("User logged out successfully.");
 
     const options = {
       httpOnly: true,
@@ -129,10 +139,8 @@ const logoutUser = asyncHandler(async (req, res, next) => {
       .clearCookie("refreshToken", options)
       .json(new ApiResponse(200, {}, "User logged out successfully."));
   } catch (error) {
-    console.log(
-      `Error occured while logging out the user. Error: ${error.message}`,
-    );
-    next;
+    console.error("Error during logout:", error.message);
+    next(error);
   }
 });
 
