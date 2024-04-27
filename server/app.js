@@ -14,14 +14,14 @@ app.use(
 
 app.use(
   express.json({
-    limit: LIMIT,
+    limit: `${LIMIT}`,
   }),
 );
 
 app.use(
   express.urlencoded({
     extended: true,
-    limit: LIMIT,
+    limit: `${LIMIT}`,
   }),
 );
 
