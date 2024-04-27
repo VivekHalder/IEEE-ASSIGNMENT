@@ -7,6 +7,7 @@ import { generateTokens } from "./utils/generateTokens.js";
 const signupUser = asyncHandler(async (req, res, next) => {
   try {
     console.log("Signup process started.");
+    console.log(req.body);
     const { username, email, password } = req.body;
 
     console.log("Received data:", username, email, password);
@@ -53,7 +54,6 @@ const signupUser = asyncHandler(async (req, res, next) => {
       .json(new ApiResponse(201, createdUser, "User created successfully."));
   } catch (error) {
     console.error("Error during signup:", error.message);
-    next(error);
   }
 });
 
