@@ -2,6 +2,7 @@ import { User } from "../models/users.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { generateTokens } from "./utils/generateTokens.js";
 
 const signupUser = asyncHandler(async (req, res, next) => {
   try {
@@ -42,30 +43,95 @@ const signupUser = asyncHandler(async (req, res, next) => {
       "-password -refreshToken",
     );
 
-    return new ApiResponse(201, createdUser, "User created successfully.");
+    return res
+      .status(200)
+      .json(new ApiResponse(201, createdUser, "User created successfully."));
   } catch (error) {
     next(error);
   }
 });
 
 const loginUser = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    throw new ApiError(400, 'Email and password are required for login.');
-  }
+  try{
+    const { email, password } = req.body;
   
-  const user = await User.findOne({ email });
+    if (!email || !password) {
+      throw new ApiError(400, "Email and password are required for login.");
+    }
   
-  if (!user || !(await user.comparePassword(password))) {
-    throw new ApiError(401, 'Invalid email or password.');
+    const user = await User.findOne({ email });
+  
+    if (!user || !(await user.comparePassword(password))) {
+      throw new ApiError(401, "Invalid email or password.");
+    }
+  
+    const { accessToken, refreshToken } = await generateTokens(user);
+  
+    const loggedInUser = await User.findById(user._id).select(
+      "-password -refreshToken",
+    );
+  
+    if (!loggedInUser) {
+      throw new ApiError(401, "Invalid email or password.");
+    }
+  
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    };
+  
+    return new res.status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          {
+            accessToken,
+            refreshToken,
+            user: loggedInUser,
+          },
+          "User logged in successfully.",
+        ),
+      );
+  } catch(error){
+    console.log(`Error occured while logging in. Error: ${error.message}`);
+    next(error);
   }
-
-  return new ApiResponse(200, { user }, 'Login successful.');
 });
 
 const logoutUser = asyncHandler(async (req, res, next) => {
-  return new ApiResponse(200, null, 'Logout successful.');
+  try {
+    await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $unset: {
+          refreshToken: 1,
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    };
+
+    return res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options)
+      .json(new ApiResponse(200, {}, "User logged out successfully."));
+  } catch (error) {
+    console.log(
+      `Error occured while logging out the user. Error: ${error.message}`,
+    );
+    next(error);
+  }
 });
 
 export { signupUser, loginUser, logoutUser };
