@@ -6,6 +6,7 @@ import { generateTokens } from "./utils/generateTokens.js";
 
 const signupUser = asyncHandler(async (req, res, next) => {
   try {
+    console.log("The process started.")
     const { username, email, password } = req.body;
 
     if ([username, email, password].some((ele) => ele !== "")) {
